@@ -1,6 +1,6 @@
 ---
 # https://goreleaser.com/customization/project/
-project_name: terraform
+project_name: terraform-0.11
 
 # https://goreleaser.com/customization/hooks/
 before:
