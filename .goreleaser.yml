@@ -1,0 +1,77 @@
+---
+# https://goreleaser.com/customization/project/
+project_name: terraform
+
+# https://goreleaser.com/customization/hooks/
+before:
+  hooks:
+    - go mod tidy
+
+# https://goreleaser.com/customization/build/
+builds:
+  - binary: "{{ .ProjectName }}"
+    env:
+      - CGO_ENABLED=0
+    # https://goreleaser.com/customization/templates/
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -extldflags '-static' -X
+        github.com/hashicorp/terraform/version.Version={{ .Version }} -X
+        github.com/hashicorp/terraform/version.Prerelease="
+    goos:
+      - darwin
+      - freebsd
+      - linux
+      - windows
+    goarch:
+      - amd64
+    #   - arm64
+    #   - "386"
+    # ignore:
+    #   - goos: darwin
+    #     goarch: "386"
+    #   - goos: linux
+    #     goarch: "386"
+
+# https://goreleaser.com/customization/archive/
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.xz
+    format_overrides:
+      - goos: windows
+        format: zip
+    replacements:
+      amd64: x86_64
+      386: i386
+      darwin: Darwin
+      freebsd: FreeBSD
+      linux: Linux
+      windows: Windows
+
+# https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  algorithm: sha256
+
+# https://goreleaser.com/customization/sign/
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+# https://goreleaser.com/customization/changelog/
+changelog:
+  skip: true
+
+# https://goreleaser.com/customization/release/
+release:
+  # If set to true, will not auto-publish the release
+  #draft: true
